@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 AutoKiwi Code Generation Studio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .connected {
+            background: rgba(76, 175, 80, 0.3);
+            border: 2px solid #4caf50;
+        }
+
+        .disconnected {
+            background: rgba(244, 67, 54, 0.3);
+            border: 2px solid #f44336;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .panel:hover {
+            transform: translateY(-5px);
+        }
+
+        .panel h2 {
+            margin-bottom: 20px;
+            color: #4ecdc4;
+            text-align: center;
+        }
+
+        .code-generation-panel {
+            grid-row: 2;
+        }
+
+        .live-preview-panel {
+            grid-row: 2;
+        }
+
+        .controls-panel {
+            grid-column: 1 / -1;
+            grid-row: 3;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #e0e0e0;
+        }
+
+        .input-group textarea,
+        .input-group select,
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .input-group textarea::placeholder,
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .position-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .position-btn {
+            padding: 10px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .position-btn.active {
+            border-color: #4ecdc4;
+            background: rgba(78, 205, 196, 0.3);
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
+        }
+
+        .position-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .code-output {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            max-height: 400px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .live-preview {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 300px;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .preview-placeholder {
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+            text-align: center;
+        }
+
+        .status-indicators {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .status-indicator {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4ecdc4;
+        }
+
+        .generation-history {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .history-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 3px solid #4ecdc4;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .history-time {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #4ecdc4;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .quick-templates {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .template-btn {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .template-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .webrtc-status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+
+        .webrtc-connected {
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid #4caf50;
+        }
+
+        .webrtc-connecting {
+            background: rgba(255, 193, 7, 0.3);
+            border: 1px solid #ffc107;
+        }
+
+        .webrtc-disconnected {
+            background: rgba(244, 67, 54, 0.3);
+            border: 1px solid #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔥 AutoKiwi Code Generation Studio</h1>
+            <div id="connection-status" class="connection-status disconnected">
+                <span>🔌</span>
+                <span id="status-text">Connecting to AutoKiwi...</span>
+                <span id="webrtc-status" class="webrtc-status webrtc-disconnected">WebRTC: Disconnected</span>
+            </div>
+        </div>
+
+        <!-- Code Generation Panel -->
+        <div class="panel code-generation-panel">
+            <h2>⚡ Code Generation</h2>
+            
+            <!-- Position Selection -->
+            <div class="input-group">
+                <label>🎯 Claude Position:</label>
+                <div class="position-buttons">
+                    <div class="position-btn active" data-position="Architect">🏗️ Architect</div>
+                    <div class="position-btn" data-position="Debugger">🔍 Debugger</div>
+                    <div class="position-btn" data-position="Tester">🧪 Tester</div>
+                    <div class="position-btn" data-position="Generator">⚡ Generator</div>
+                    <div class="position-btn" data-position="Designer">🎨 Designer</div>
+                </div>
+            </div>
+
+            <!-- Quick Templates -->
+            <div class="input-group">
+                <label>📋 Quick Templates:</label>
+                <div class="quick-templates">
+                    <div class="template-btn" data-template="login form with validation">🔐 Login Form</div>
+                    <div class="template-btn" data-template="calculator application">🔢 Calculator</div>
+                    <div class="template-btn" data-template="data grid with CRUD operations">📊 Data Grid</div>
+                    <div class="template-btn" data-template="REST API client">🌐 API Client</div>
+                    <div class="template-btn" data-template="file manager interface">📁 File Manager</div>
+                    <div class="template-btn" data-template="dashboard with charts">📈 Dashboard</div>
+                </div>
+            </div>
+
+            <!-- Code Prompt -->
+            <div class="input-group">
+                <label>💭 Describe what to generate:</label>
+                <textarea id="code-prompt" placeholder="e.g., Create a login form with username, password, remember me checkbox, and proper validation..." rows="4"></textarea>
+            </div>
+
+            <!-- Language Selection -->
+            <div class="input-group">
+                <label>📝 Language:</label>
+                <select id="language-select">
+                    <option value="csharp">C# (WinForms)</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="typescript">TypeScript</option>
+                    <option value="python">Python</option>
+                </select>
+            </div>
+
+            <!-- Generation Buttons -->
+            <div style="text-align: center;">
+                <button class="btn btn-primary" onclick="generateCode()">
+                    <span id="generate-btn-text">🚀 Generate Code</span>
+                    <span id="generate-loading" class="loading" style="display: none;"></span>
+                </button>
+                <button class="btn btn-secondary" onclick="clearCode()">🗑️ Clear</button>
+            </div>
+
+            <!-- Generated Code Output -->
+            <div class="input-group">
+                <label>📋 Generated Code:</label>
+                <div id="code-output" class="code-output">// Generated code will appear here...
+// Position-aware generation based on current Claude role</div>
+            </div>
+        </div>
+
+        <!-- Live Preview Panel -->
+        <div class="panel live-preview-panel">
+            <h2>👁️ Live Preview</h2>
+            
+            <!-- Status Indicators -->
+            <div class="status-indicators">
+                <div class="status-indicator">
+                    <div class="status-value" id="current-position">Architect</div>
+                    <div>Current Position</div>
+                </div>
+                <div class="status-indicator">
+                    <div class="status-value" id="memory-usage">0MB</div>
+                    <div>Memory Usage</div>
+                </div>
+                <div class="status-indicator">
+                    <div class="status-value" id="compilation-status">Ready</div>
+                    <div>Compilation</div>
+                </div>
+                <div class="status-indicator">
+                    <div class="status-value" id="last-update">--:--:--</div>
+                    <div>Last Update</div>
+                </div>
+            </div>
+
+            <!-- Live Preview Area -->
+            <div class="input-group">
+                <label>🖼️ Application Preview:</label>
+                <div id="live-preview" class="live-preview">
+                    <div class="preview-placeholder">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">🎬</div>
+                        <div>Live preview will appear here</div>
+                        <div style="font-size: 0.9rem; margin-top: 10px;">Generate code to see live results</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="compileAndRun()">▶️ Compile & Run</button>
+                <button class="btn btn-secondary" onclick="testApplication()">🧪 Test</button>
+                <button class="btn btn-secondary" onclick="deployToProject()">📦 Add to Project</button>
+            </div>
+        </div>
+
+        <!-- Controls Panel -->
+        <div class="panel controls-panel">
+            <h2>🎮 Generation History & Controls</h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <!-- Generation History -->
+                <div>
+                    <label>📚 Generation History:</label>
+                    <div id="generation-history" class="generation-history">
+                        <!-- History items will be added here -->
+                    </div>
+                </div>
+
+                <!-- Chat Interface -->
+                <div>
+                    <label>💬 Chat with Claude:</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="chat-input" placeholder="Ask Claude about the code..." style="flex: 1;">
+                        <button class="btn btn-primary" onclick="sendChatMessage()">📤 Send</button>
+                    </div>
+                    <div id="chat-output" class="code-output" style="max-height: 150px;">
+                        💭 Chat responses will appear here...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="webrtc-client.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>
