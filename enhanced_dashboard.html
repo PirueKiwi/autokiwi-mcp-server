@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Claude 4 Autonomous AutoKiwi Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3a 50%, #2d1b69 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 15px;
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            grid-template-rows: auto 1fr;
+            gap: 15px;
+            min-height: 100vh;
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 127, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00ff7f, #1e90ff, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .autonomous-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            background: rgba(0, 255, 127, 0.2);
+            border: 2px solid #00ff7f;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 255, 127, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(0, 255, 127, 0.8); }
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .panel:hover {
+            transform: translateY(-3px);
+        }
+
+        .panel h3 {
+            margin-bottom: 15px;
+            color: #00ff7f;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .control-panel {
+            grid-row: 2;
+        }
+
+        .main-panel {
+            grid-row: 2;
+        }
+
+        .monitoring-panel {
+            grid-row: 2;
+        }
+
+        .position-buttons {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .position-btn {
+            padding: 8px 12px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .position-btn.active {
+            border-color: #00ff7f;
+            background: rgba(0, 255, 127, 0.3);
+            box-shadow: 0 0 15px rgba(0, 255, 127, 0.5);
+        }
+
+        .position-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .autonomous-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #00ff7f, #1e90ff);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 3px 10px rgba(0, 255, 127, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .status-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #00ff7f;
+            margin-bottom: 2px;
+        }
+
+        .status-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .event-stream {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            border: 1px solid rgba(0, 255, 127, 0.3);
+        }
+
+        .event-item {
+            padding: 4px 8px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            border-left: 3px solid #00ff7f;
+            background: rgba(255, 255, 255, 0.05);
+            transition: background 0.3s ease;
+        }
+
+        .event-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .event-time {
+            color: #1e90ff;
+            font-weight: bold;
+        }
+
+        .event-type {
+            color: #00ff7f;
+            font-weight: bold;
+        }
+
+        .event-autonomous {
+            border-left-color: #ff6b6b;
+        }
+
+        .event-reaction {
+            border-left-color: #ffa500;
+        }
+
+        .code-analysis {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(0, 255, 127, 0.2);
+        }
+
+        .analysis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .analysis-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-analyzing {
+            background: rgba(255, 165, 0, 0.3);
+            color: #ffa500;
+        }
+
+        .status-completed {
+            background: rgba(0, 255, 127, 0.3);
+            color: #00ff7f;
+        }
+
+        .status-error {
+            background: rgba(255, 107, 107, 0.3);
+            color: #ff6b6b;
+        }
+
+        .code-snippet {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+            border-left: 3px solid #00ff7f;
+            margin: 8px 0;
+        }
+
+        .reaction-log {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+        }
+
+        .reaction-item {
+            padding: 6px 10px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid #ff6b6b;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .metric-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #1e90ff;
+        }
+
+        .connection-quality {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .quality-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00ff7f;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #00ff7f;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .autonomous-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background: rgba(0, 255, 127, 0.2);
+            border: 2px solid #00ff7f;
+            border-radius: 25px;
+            font-weight: bold;
+            animation: float 3s ease-in-out infinite;
+            z-index: 1000;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Autonomous Indicator -->
+    <div id="autonomous-indicator" class="autonomous-indicator">
+        🤖 Claude 4 Autonomous Active
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🤖 Claude 4 Autonomous AutoKiwi Dashboard</h1>
+            <div id="autonomous-status" class="autonomous-status">
+                <span>🚀</span>
+                <span id="status-text">Initializing Autonomous Mode...</span>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="panel control-panel">
+            <h3>🎮 Autonomous Control</h3>
+            
+            <!-- Position Display -->
+            <div class="position-buttons" id="position-buttons">
+                <div class="position-btn active" data-position="Architect">🏗️ Architect</div>
+                <div class="position-btn" data-position="Generator">⚡ Generator</div>
+                <div class="position-btn" data-position="Debugger">🔍 Debugger</div>
+                <div class="position-btn" data-position="Tester">🧪 Tester</div>
+                <div class="position-btn" data-position="Designer">🎨 Designer</div>
+            </div>
+
+            <!-- Autonomous Controls -->
+            <div class="autonomous-controls">
+                <button class="btn btn-primary" onclick="enableAutonomous()">🚀 Enable</button>
+                <button class="btn btn-secondary" onclick="disableAutonomous()">⏸️ Pause</button>
+            </div>
+
+            <!-- Status Grid -->
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-value" id="reactions-count">0</div>
+                    <div class="status-label">Reactions</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="uptime">00:00:00</div>
+                    <div class="status-label">Uptime</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="issues-detected">0</div>
+                    <div class="status-label">Issues</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="success-rate">100%</div>
+                    <div class="status-label">Success</div>
+                </div>
+            </div>
+
+            <!-- Connection Quality -->
+            <div class="connection-quality">
+                <div class="quality-indicator" id="quality-indicator"></div>
+                <span id="connection-text">WebRTC Connected</span>
+            </div>
+
+            <!-- Quick Actions -->
+            <div style="margin-top: 15px;">
+                <button class="btn btn-secondary" onclick="triggerTestReaction()" style="width: 100%; margin-bottom: 5px;">
+                    🧪 Test Reaction
+                </button>
+                <button class="btn btn-secondary" onclick="clearEventLog()" style="width: 100%;">
+                    🗑️ Clear Log
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Panel -->
+        <div class="panel main-panel">
+            <h3>🔍 Real-time Code Analysis</h3>
+            
+            <!-- Code Analysis Section -->
+            <div class="code-analysis">
+                <div class="analysis-header">
+                    <strong>📊 Current Analysis</strong>
+                    <div class="analysis-status status-analyzing" id="analysis-status">Analyzing...</div>
+                </div>
+                
+                <div id="current-analysis" class="code-snippet">
+// Waiting for code changes...
+// Claude 4 will automatically analyze and react to:
+// • Compilation errors
+// • Runtime exceptions  
+// • Performance issues
+// • Incomplete implementations
+// • Test failures
+// • UI/UX problems
+                </div>
+
+                <div style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <button class="btn btn-primary" onclick="requestAnalysis()">🔍 Analyze Now</button>
+                    <button class="btn btn-secondary" onclick="streamCode()">📡 Stream Code</button>
+                </div>
+            </div>
+
+            <!-- Autonomous Reactions Log -->
+            <div style="margin-top: 15px;">
+                <strong>🤖 Autonomous Reactions</strong>
+                <div id="reaction-log" class="reaction-log">
+                    <div class="reaction-item">
+                        <strong>System:</strong> Claude 4 Autonomous mode initialized
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Metrics -->
+            <div style="margin-top: 15px;">
+                <strong>📈 Performance Metrics</strong>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-value" id="memory-usage">0MB</div>
+                        <div class="status-label">Memory</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="cpu-usage">0%</div>
+                        <div class="status-label">CPU</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="event-rate">0/min</div>
+                        <div class="status-label">Events</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="latency">0ms</div>
+                        <div class="status-label">Latency</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitoring Panel -->
+        <div class="panel monitoring-panel">
+            <h3>📡 Event Stream Monitor</h3>
+            
+            <!-- Event Stream -->
+            <div id="event-stream" class="event-stream">
+                <!-- Events will be added here dynamically -->
+            </div>
+
+            <!-- Stream Controls -->
+            <div style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button class="btn btn-primary" onclick="toggleEventStream()">
+                    <span id="stream-btn-text">⏸️ Pause</span>
+                </button>
+                <button class="btn btn-secondary" onclick="exportEventLog()">📤 Export</button>
+            </div>
+
+            <!-- Filter Controls -->
+            <div style="margin-top: 10px;">
+                <strong>🔍 Event Filters</strong>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 8px;">
+                    <label style="display: flex; align-items: center; gap: 5px; font-size: 0.85rem;">
+                        <input type="checkbox" id="filter-autonomous" checked onchange="updateEventFilter()">
+                        🤖 Autonomous
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; font-size: 0.85rem;">
+                        <input type="checkbox" id="filter-reactions" checked onchange="updateEventFilter()">
+                        ⚡ Reactions
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; font-size: 0.85rem;">
+                        <input type="checkbox" id="filter-errors" checked onchange="updateEventFilter()">
+                        🚨 Errors
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; font-size: 0.85rem;">
+                        <input type="checkbox" id="filter-health" onchange="updateEventFilter()">
+                        💚 Health
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let autonomousEnabled = false;
+        let eventStreamActive = true;
+        let currentPosition = 'Architect';
+        let reactionsCount = 0;
+        let issuesDetected = 0;
+        let startTime = new Date();
+        let events = [];
+        let eventFilters = {
+            autonomous: true,
+            reactions: true,
+            errors: true,
+            health: false
+        };
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🤖 Claude 4 Autonomous Dashboard initializing...');
+            
+            await initializeAutonomousMode();
+            startEventStream();
+            startMetricsUpdate();
+            setupWebRTCBridge();
+            
+            console.log('✅ Dashboard ready for autonomous operation!');
+        });
+
+        async function initializeAutonomousMode() {
+            try {
+                // Enable autonomous mode
+                autonomousEnabled = true;
+                updateStatusIndicator('🚀 Claude 4 Autonomous Active');
+                
+                // Log initialization
+                addEvent('system', 'Claude 4 Autonomous Dashboard initialized', 'system');
+                addReaction('System', 'Autonomous monitoring activated');
+                
+                // Request initial status
+                await requestAutonomousStatus();
+                
+            } catch (error) {
+                console.error('Failed to initialize autonomous mode:', error);
+                updateStatusIndicator('❌ Initialization Failed');
+            }
+        }
+
+        function setupWebRTCBridge() {
+            // Connect to Claude 4 WebRTC bridge
+            if (window.Claude4Bridge) {
+                window.Claude4Bridge.onEvent = handleWebRTCEvent;
+                addEvent('webrtc', 'WebRTC bridge connected', 'system');
+            } else {
+                // Simulate WebRTC events for demonstration
+                simulateWebRTCEvents();
+            }
+        }
+
+        function handleWebRTCEvent(event) {
+            switch (event.type) {
+                case 'claude4_bridge_ready':
+                    addEvent('webrtc', 'Claude 4 bridge ready', 'system');
+                    break;
+                case 'autonomous_reaction':
+                    handleAutonomousReaction(event);
+                    break;
+                case 'health_check':
+                    updateHealthMetrics(event.data);
+                    break;
+                case 'code_change':
+                    handleCodeChange(event);
+                    break;
+                default:
+                    addEvent('webrtc', `Unknown event: ${event.type}`, 'info');
+            }
+        }
+
+        function simulateWebRTCEvents() {
+            // Simulate autonomous events for demonstration
+            setInterval(() => {
+                const eventTypes = [
+                    { type: 'code_scan', message: 'Autonomous code scan completed' },
+                    { type: 'health_check', message: 'System health check passed' },
+                    { type: 'performance_monitor', message: 'Performance metrics collected' }
+                ];
+                
+                const event = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+                addEvent('autonomous', event.message, 'autonomous');
+                
+                // Occasionally trigger test reactions
+                if (Math.random() < 0.1) {
+                    simulateAutonomousReaction();
+                }
+            }, 3000);
+        }
+
+        function simulateAutonomousReaction() {
+            const reactions = [
+                { issue: 'compilation', action: 'Switch to Debugger mode', position: 'Debugger' },
+                { issue: 'performance', action: 'Optimize algorithm', position: 'Architect' },
+                { issue: 'incomplete', action: 'Generate implementation', position: 'Generator' },
+                { issue: 'test_failure', action: 'Analyze test requirements', position: 'Tester' },
+                { issue: 'ui_issue', action: 'Improve interface', position: 'Designer' }
+            ];
+            
+            const reaction = reactions[Math.floor(Math.random() * reactions.length)];
+            
+            // Update position
+            switchPosition(reaction.position);
+            
+            // Log reaction
+            addEvent('reaction', `${reaction.issue} detected → ${reaction.action}`, 'reaction');
+            addReaction('Claude 4', `Autonomous reaction: ${reaction.action}`);
+            
+            // Update metrics
+            reactionsCount++;
+            issuesDetected++;
+            updateReactionsCount();
+        }
+
+        function handleAutonomousReaction(event) {
+            const { trigger, reaction } = event;
+            
+            addEvent('reaction', `${trigger.type} → ${reaction.action}`, 'reaction');
+            addReaction('Claude 4', `Autonomous: ${reaction.action}`);
+            
+            reactionsCount++;
+            updateReactionsCount();
+        }
+
+        function handleCodeChange(event) {
+            const { code, language, file } = event;
+            
+            // Update analysis display
+            document.getElementById('current-analysis').textContent = 
+                `// Analyzing: ${file}\n// Language: ${language}\n\n${code.substring(0, 200)}...`;
+            
+            document.getElementById('analysis-status').textContent = 'Analyzing...';
+            document.getElementById('analysis-status').className = 'analysis-status status-analyzing';
+            
+            addEvent('code', `Code change detected in ${file}`, 'info');
+            
+            // Simulate analysis completion
+            setTimeout(() => {
+                document.getElementById('analysis-status').textContent = 'Completed';
+                document.getElementById('analysis-status').className = 'analysis-status status-completed';
+            }, 2000);
+        }
+
+        async function enableAutonomous() {
+            autonomousEnabled = true;
+            updateStatusIndicator('🚀 Claude 4 Autonomous Active');
+            addEvent('system', 'Autonomous mode enabled manually', 'system');
+            addReaction('User', 'Manually enabled autonomous mode');
+            
+            try {
+                // Call MCP server to enable autonomous mode
+                await fetch('/api/enable-autonomous', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: 'full' })
+                });
+            } catch (error) {
+                console.warn('MCP server not available');
+            }
+        }
+
+        async function disableAutonomous() {
+            autonomousEnabled = false;
+            updateStatusIndicator('⏸️ Autonomous Mode Paused');
+            addEvent('system', 'Autonomous mode paused', 'system');
+            addReaction('User', 'Paused autonomous mode');
+        }
+
+        function switchPosition(position) {
+            // Update UI
+            document.querySelectorAll('.position-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.position === position);
+            });
+            
+            currentPosition = position;
+            addEvent('position', `Switched to ${position} mode`, 'system');
+        }
+
+        function triggerTestReaction() {
+            simulateAutonomousReaction();
+        }
+
+        async function requestAnalysis() {
+            document.getElementById('analysis-status').textContent = 'Analyzing...';
+            document.getElementById('analysis-status').className = 'analysis-status status-analyzing';
+            
+            addEvent('user', 'Manual analysis requested', 'info');
+            
+            // Simulate analysis
+            setTimeout(() => {
+                document.getElementById('analysis-status').textContent = 'Completed';
+                document.getElementById('analysis-status').className = 'analysis-status status-completed';
+                addEvent('analysis', 'Manual analysis completed', 'system');
+            }, 2000);
+        }
+
+        function streamCode() {
+            addEvent('user', 'Code streaming requested', 'info');
+            
+            // Simulate code streaming
+            const sampleCode = `public class AutoKiwiTest
+{
+    public void TestMethod()
+    {
+        // TODO: Implement test logic
+        var result = Calculate();
+        Assert.IsTrue(result > 0);
+    }
+}`;
+            
+            document.getElementById('current-analysis').textContent = sampleCode;
+            addEvent('code', 'Code streamed for analysis', 'info');
+        }
+
+        async function requestAutonomousStatus() {
+            try {
+                const response = await fetch('/api/autonomous-status');
+                if (response.ok) {
+                    const status = await response.json();
+                    updateDashboardFromStatus(status);
+                }
+            } catch (error) {
+                console.warn('Cannot fetch autonomous status');
+            }
+        }
+
+        function updateDashboardFromStatus(status) {
+            // Update metrics from server status
+            if (status.reactions_count !== undefined) {
+                reactionsCount = status.reactions_count;
+                updateReactionsCount();
+            }
+            
+            if (status.issues_detected !== undefined) {
+                issuesDetected = status.issues_detected;
+                document.getElementById('issues-detected').textContent = issuesDetected;
+            }
+            
+            if (status.success_rate !== undefined) {
+                document.getElementById('success-rate').textContent = 
+                    Math.round(status.success_rate * 100) + '%';
+            }
+        }
+
+        function addEvent(type, message, category) {
+            const timestamp = new Date();
+            const event = { type, message, category, timestamp };
+            events.unshift(event);
+            
+            // Keep only last 100 events
+            if (events.length > 100) {
+                events.pop();
+            }
+            
+            updateEventDisplay();
+        }
+
+        function addReaction(actor, action) {
+            const reactionLog = document.getElementById('reaction-log');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const reactionItem = document.createElement('div');
+            reactionItem.className = 'reaction-item';
+            reactionItem.innerHTML = `<strong>${actor}:</strong> ${action} <small>[${timestamp}]</small>`;
+            
+            reactionLog.insertBefore(reactionItem, reactionLog.firstChild);
+            
+            // Keep only last 20 reactions
+            while (reactionLog.children.length > 20) {
+                reactionLog.removeChild(reactionLog.lastChild);
+            }
+        }
+
+        function updateEventDisplay() {
+            if (!eventStreamActive) return;
+            
+            const eventStream = document.getElementById('event-stream');
+            eventStream.innerHTML = '';
+            
+            const filteredEvents = events.filter(event => {
+                switch (event.category) {
+                    case 'autonomous': return eventFilters.autonomous;
+                    case 'reaction': return eventFilters.reactions;
+                    case 'error': return eventFilters.errors;
+                    case 'system': return eventFilters.health;
+                    default: return true;
+                }
+            });
+            
+            filteredEvents.slice(0, 50).forEach(event => {
+                const eventItem = document.createElement('div');
+                eventItem.className = `event-item event-${event.category}`;
+                
+                const timeStr = event.timestamp.toLocaleTimeString();
+                eventItem.innerHTML = `
+                    <span class="event-time">[${timeStr}]</span>
+                    <span class="event-type">${event.type.toUpperCase()}</span>
+                    ${event.message}
+                `;
+                
+                eventStream.appendChild(eventItem);
+            });
+            
+            eventStream.scrollTop = 0;
+        }
+
+        function updateEventFilter() {
+            eventFilters.autonomous = document.getElementById('filter-autonomous').checked;
+            eventFilters.reactions = document.getElementById('filter-reactions').checked;
+            eventFilters.errors = document.getElementById('filter-errors').checked;
+            eventFilters.health = document.getElementById('filter-health').checked;
+            
+            updateEventDisplay();
+        }
+
+        function toggleEventStream() {
+            eventStreamActive = !eventStreamActive;
+            const btnText = document.getElementById('stream-btn-text');
+            btnText.textContent = eventStreamActive ? '⏸️ Pause' : '▶️ Resume';
+            
+            if (eventStreamActive) {
+                updateEventDisplay();
+            }
+        }
+
+        function clearEventLog() {
+            events = [];
+            updateEventDisplay();
+            addEvent('system', 'Event log cleared', 'system');
+        }
+
+        function exportEventLog() {
+            const data = JSON.stringify(events, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `autokiwi-events-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+            addEvent('user', 'Event log exported', 'info');
+        }
+
+        function updateStatusIndicator(text) {
+            document.getElementById('status-text').textContent = text;
+        }
+
+        function updateReactionsCount() {
+            document.getElementById('reactions-count').textContent = reactionsCount;
+        }
+
+        function startEventStream() {
+            // Add initial events
+            addEvent('system', 'Event stream started', 'system');
+            addEvent('webrtc', 'WebRTC monitoring active', 'system');
+            addEvent('autonomous', 'Claude 4 ready for autonomous operation', 'autonomous');
+        }
+
+        function startMetricsUpdate() {
+            setInterval(() => {
+                // Update uptime
+                const uptime = new Date() - startTime;
+                const hours = Math.floor(uptime / 3600000);
+                const minutes = Math.floor((uptime % 3600000) / 60000);
+                const seconds = Math.floor((uptime % 60000) / 1000);
+                document.getElementById('uptime').textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Update memory usage
+                if (performance.memory) {
+                    const memoryMB = Math.round(performance.memory.usedJSHeapSize / 1024 / 1024);
+                    document.getElementById('memory-usage').textContent = memoryMB + 'MB';
+                }
+                
+                // Simulate CPU and other metrics
+                document.getElementById('cpu-usage').textContent = 
+                    Math.floor(Math.random() * 10 + 5) + '%';
+                document.getElementById('event-rate').textContent = 
+                    Math.floor(events.length / ((uptime / 60000) + 1)) + '/min';
+                document.getElementById('latency').textContent = 
+                    Math.floor(Math.random() * 50 + 10) + 'ms';
+                
+            }, 1000);
+        }
+
+        // Position button event listeners
+        document.querySelectorAll('.position-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                switchPosition(btn.dataset.position);
+                addReaction('User', `Manually switched to ${btn.dataset.position} mode`);
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key) {
+                    case '1': e.preventDefault(); switchPosition('Architect'); break;
+                    case '2': e.preventDefault(); switchPosition('Generator'); break;
+                    case '3': e.preventDefault(); switchPosition('Debugger'); break;
+                    case '4': e.preventDefault(); switchPosition('Tester'); break;
+                    case '5': e.preventDefault(); switchPosition('Designer'); break;
+                    case 'r': e.preventDefault(); triggerTestReaction(); break;
+                    case 'a': e.preventDefault(); requestAnalysis(); break;
+                    case 'e': e.preventDefault(); exportEventLog(); break;
+                }
+            }
+        });
+
+        // Add welcome messages
+        setTimeout(() => {
+            addReaction('Claude 4', 'Autonomous AutoKiwi Dashboard ready! 🚀');
+            addReaction('System', 'All monitoring systems operational');
+            addReaction('Claude 4', 'Ready to detect and react to code issues autonomously');
+        }, 1000);
+    </script>
+</body>
+</html>
